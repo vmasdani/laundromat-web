@@ -21,9 +21,9 @@ if args.action == "run":
 elif args.action == "build":
     steps = [
         ("yarn build", "./frontend"),
-        ("dotnet build -r linux-x64", "."),
-        ("dotnet build -r win-x64", ".")
-        
+        ("dotnet build -r linux-x64 && cp -r wwwroot bin/Debug/net6.0/linux-x64/", "."),
+        ("dotnet build -r win-x64 && cp -r wwwroot bin/Debug/net6.0/win-x64/", ".")
+
     ]
 
 

@@ -1,3 +1,4 @@
 laundromatweb.sqlite3*
 bin/
 obj/
+wwwroot/assets/*
