@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace laundromatweb.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230802153627_items_desc")]
+    partial class items_desc
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
@@ -62,9 +64,6 @@ namespace laundromatweb.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
-                    b.Property<double?>("Price")
-                        .HasColumnType("REAL");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -73,34 +72,6 @@ namespace laundromatweb.Migrations
                     b.HasIndex("CreatedById");
 
                     b.ToTable("Items");
-                });
-
-            modelBuilder.Entity("Store", b =>
-                {
-                    b.Property<int?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Address")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("CreatedById")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedById");
-
-                    b.ToTable("Stores");
                 });
 
             modelBuilder.Entity("User", b =>
@@ -141,15 +112,6 @@ namespace laundromatweb.Migrations
                 });
 
             modelBuilder.Entity("Item", b =>
-                {
-                    b.HasOne("User", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById");
-
-                    b.Navigation("CreatedBy");
-                });
-
-            modelBuilder.Entity("Store", b =>
                 {
                     b.HasOne("User", "CreatedBy")
                         .WithMany()

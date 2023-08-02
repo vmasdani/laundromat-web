@@ -5,9 +5,10 @@ class ApplicationDBContext : DbContext
     public ApplicationDBContext(DbContextOptions options) : base(options) { }
     public DbSet<Customer>? Customers { get; set; }
     public DbSet<User>? Users { get; set; }
+    public DbSet<Item>? Items { get; set; }
+    public DbSet<Store>? Stores { get; set; }
 
-
-     public override int SaveChanges()
+    public override int SaveChanges()
     {
         AddTimestamps();
         return base.SaveChanges();

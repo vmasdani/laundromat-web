@@ -27,9 +27,32 @@ app.UseStaticFiles();
 
 Console.WriteLine("Open http://localhost:5021 to run app.");
 
+app.MapGet("/api/stores", (ApplicationDBContext ctx) =>
+    ctx.Stores
+);
+app.MapPost("/api/stores-save-bulk", (
+    ApplicationDBContext ctx,
+    [FromBody] List<Store> stores
+) =>
+{
+    ctx.UpdateRange(stores);
+    ctx.SaveChanges();
+});
+
+app.MapGet("/api/items", (ApplicationDBContext ctx) =>
+    ctx.Items
+);
+app.MapPost("/api/items-save-bulk", (
+    ApplicationDBContext ctx,
+    [FromBody] List<Item> items
+) =>
+{
+    ctx.UpdateRange(items);
+    ctx.SaveChanges();
+});
+
 app.MapGet("/api/customers", (ApplicationDBContext ctx) =>
     ctx.Customers
-        ?.Include(c => c.CreatedBy)
 );
 app.MapPost("/api/customers-save-bulk", (
     ApplicationDBContext ctx,
@@ -49,7 +72,7 @@ app.MapPost("/api/users-save-bulk", (
     var mappedUsers = users.Select(u =>
     {
         var foundUser = ctx.Users?.Where(ux => ux.Id == u.Id).FirstOrDefault();
-        
+
         // return foundUser; 
         ctx.Entry(foundUser).State = EntityState.Detached;
 
