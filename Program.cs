@@ -1,16 +1,15 @@
-using System.Text.Json;
+
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Builder.Extensions;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 builder?.Services.AddSqlite<ApplicationDBContext>("Data Source=laundromatweb.sqlite3");
 builder?.Services.AddDbContext<ApplicationDBContext>(o =>
     o.UseSqlite("Data Source=laundromatweb.sqlite3")
 );
-
+builder?.Services.Configure<JsonOptions>(o=>{
+    o.SerializerOptions.Converters.Add(new JsonDateTimeConverter());
+});
 
 var app = builder?.Build();
 
@@ -27,24 +26,56 @@ app.UseStaticFiles();
 
 Console.WriteLine("Open http://localhost:5021 to run app.");
 
+
+app.MapGet("/api/testdt", (ApplicationDBContext ctx) =>
+    DateTime.Now.ToUniversalTime().ToString("o")
+);
+app.MapGet("/api/laundryrecords", (ApplicationDBContext ctx) =>
+    ctx.LaundryRecords
+        ?.Include(r => r.Customer)
+);
+app.MapPost("/api/laundryrecords-save-bulk", (
+    ApplicationDBContext ctx,
+    List<LaundryRecord> laundryRecords
+) =>
+{
+    ctx.UpdateRange(laundryRecords);
+    ctx.SaveChanges();
+});
+
+
 app.MapGet("/api/stores", (ApplicationDBContext ctx) =>
     ctx.Stores
 );
 app.MapPost("/api/stores-save-bulk", (
     ApplicationDBContext ctx,
-    [FromBody] List<Store> stores
+    List<Store> stores
 ) =>
 {
     ctx.UpdateRange(stores);
     ctx.SaveChanges();
 });
 
+app.MapGet("/api/appstats", (ApplicationDBContext ctx) =>
+    {
+        var a = new AppStats();
+
+        a.Stores = ctx.Stores?.Count();
+        a.Items = ctx.Items?.Count();
+        a.Inventory = ctx.Inventory?.Count();
+        a.Customers = ctx.Customers?.Count();
+        a.Users = ctx.Users?.Count();
+
+        return a;
+    }
+);
+
 app.MapGet("/api/items", (ApplicationDBContext ctx) =>
     ctx.Items
 );
 app.MapPost("/api/items-save-bulk", (
     ApplicationDBContext ctx,
-    [FromBody] List<Item> items
+    List<Item> items
 ) =>
 {
     ctx.UpdateRange(items);
@@ -56,7 +87,7 @@ app.MapGet("/api/customers", (ApplicationDBContext ctx) =>
 );
 app.MapPost("/api/customers-save-bulk", (
     ApplicationDBContext ctx,
-    [FromBody] List<Customer> custs
+    List<Customer> custs
 ) =>
 {
     ctx.UpdateRange(custs);
@@ -66,7 +97,7 @@ app.MapPost("/api/customers-save-bulk", (
 app.MapGet("/api/users", (ApplicationDBContext ctx) => ctx.Users);
 app.MapPost("/api/users-save-bulk", (
     ApplicationDBContext ctx,
-    [FromBody] List<User> users
+    List<User> users
 ) =>
 {
     var mappedUsers = users.Select(u =>
@@ -93,3 +124,4 @@ app.MapPost("/api/users-save-bulk", (
 
 
 app.Run();
+

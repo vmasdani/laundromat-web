@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import App from "./App.vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import "@mdi/font/css/materialdesignicons.css"; // Ensure you are using css-loader
+import "vue-select/dist/vue-select.css";
 
 import HomeVue from "./components/Home.vue";
 import EmployeesVue from "./components/Employees.vue";
@@ -17,8 +18,9 @@ import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import { createVuetify } from "vuetify";
 import { aliases, mdi } from "vuetify/iconsets/mdi";
+import DropOffDetailVue from "./components/DropOffDetail.vue";
 
-export const ctx = ref ({ apiKey: null as string | null });
+export const ctx = ref({ apiKey: null as string | null });
 
 const vuetify = createVuetify({
   components,
@@ -38,6 +40,7 @@ const routes = [
   { path: "/customers", component: CustomersVue },
   { path: "/stores", component: StoresVue },
   { path: "/inventory", component: InventoryVue },
+  { path: "/dropoffs/:id", component: DropOffDetailVue },
 ];
 
 const router = createRouter({

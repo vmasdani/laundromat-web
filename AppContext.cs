@@ -5,8 +5,13 @@ class ApplicationDBContext : DbContext
     public ApplicationDBContext(DbContextOptions options) : base(options) { }
     public DbSet<Customer>? Customers { get; set; }
     public DbSet<User>? Users { get; set; }
+    public DbSet<Inventory>? Inventory { get; set; }
     public DbSet<Item>? Items { get; set; }
     public DbSet<Store>? Stores { get; set; }
+    public DbSet<LaundryRecord>? LaundryRecords { get; set; }
+    public DbSet<RecordItem>? RecordItems { get; set; }
+    
+
 
     public override int SaveChanges()
     {

@@ -6,7 +6,7 @@ const detailOpen = ref(false);
 <template>
   <dialog class="bg-light" style="z-index: 100; width: 75vw" :open="detailOpen">
     <div>
-      <div><h4>Customer Detail</h4></div>
+      <div><h4>Employee Detail</h4></div>
     </div>
     <div><hr class="border border-dark" /></div>
     <div class="d-flex justify-content-end">
@@ -25,7 +25,7 @@ const detailOpen = ref(false);
   </dialog>
   <div>
     <div class="d-flex align-items-center">
-      <div><h4>Inventory</h4></div>
+      <div><h4>Employee``</h4></div>
       <div class="mx-3">
         <button
           class="px-1 py-0 btn btn-sm btn-primary"

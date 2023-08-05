@@ -4,6 +4,14 @@ using System.Text.Json.Serialization;
 public class LaundryRecord : BaseModel
 {
     public string? Name { get; set; }
+    public List<RecordItem>? RecordItems { get; set; }
 
+    public Customer? Customer { get; set; }
+    public int? CustomerId { get; set; }
+    public string? Remark { get; set; }
+    public double? Weight { get; set; }
+    public double? PriceSnapshot { get; set; }
+    public bool? IsDiscount { get; set; }
+    public double? DiscountPrice { get; set; }
 
 }
