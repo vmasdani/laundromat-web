@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace laundromatweb.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230806153500_recorditem_storeitemid")]
+    partial class recorditem_storeitemid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
@@ -152,12 +154,6 @@ namespace laundromatweb.Migrations
                     b.Property<string>("Remark")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("Status")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("StoreId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -169,8 +165,6 @@ namespace laundromatweb.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("CustomerId");
-
-                    b.HasIndex("StoreId");
 
                     b.ToTable("LaundryRecords");
                 });
@@ -326,15 +320,9 @@ namespace laundromatweb.Migrations
                         .WithMany()
                         .HasForeignKey("CustomerId");
 
-                    b.HasOne("Customer", "Store")
-                        .WithMany()
-                        .HasForeignKey("StoreId");
-
                     b.Navigation("CreatedBy");
 
                     b.Navigation("Customer");
-
-                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("RecordItem", b =>

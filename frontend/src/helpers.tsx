@@ -8,3 +8,7 @@ export const formatDateTimeShort = (s?: string | null | undefined) => {
     return "Invalid date";
   }
 };
+
+export type LaundryRecordStatus = "ONGOING" | "DONE";
+export const laundryRecordStatuses:LaundryRecordStatus[] = ["ONGOING" , "DONE"];
+

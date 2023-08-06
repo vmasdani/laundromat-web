@@ -8,10 +8,13 @@ public class LaundryRecord : BaseModel
 
     public Customer? Customer { get; set; }
     public int? CustomerId { get; set; }
+    public Customer? Store { get; set; }
+    public int? StoreId { get; set; }
     public string? Remark { get; set; }
     public double? Weight { get; set; }
     public double? PriceSnapshot { get; set; }
     public bool? IsDiscount { get; set; }
     public double? DiscountPrice { get; set; }
+    public LaundryRecordStatus? Status { get; set; }
 
 }

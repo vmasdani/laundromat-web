@@ -14,6 +14,41 @@ export const fetchItems = async (params: { apiKey?: any }) => {
   }
 };
 
+export const fetchInventorySummary = async (params: { apiKey?: any }) => {
+  try {
+    const resp = await fetch(
+      `${window.location.origin}/api/inventory-summary`,
+      {
+        headers: { authorization: params.apiKey ?? "" },
+      }
+    );
+    if (resp.status !== 200) {
+      throw await resp.text();
+    }
+
+    return await resp.json();
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+};
+
+export const fetchInventory = async (params: { apiKey?: any }) => {
+  try {
+    const resp = await fetch(`${window.location.origin}/api/inventory`, {
+      headers: { authorization: params.apiKey ?? "" },
+    });
+    if (resp.status !== 200) {
+      throw await resp.text();
+    }
+
+    return await resp.json();
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+};
+
 export const fetchStores = async (params: { apiKey?: any }) => {
   try {
     const resp = await fetch(`${window.location.origin}/api/stores`, {

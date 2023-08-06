@@ -47,7 +47,7 @@ fetchAppStatsData();
 
     <div
       v-for="i in ['Stores', 'Items', 'Inventory', 'Customers', 'Users'].filter(
-        (h) => (appStats[h?.toLowerCase() ?? ''] ?? 0) === 0
+        (h) => (appStats?.[h?.toLowerCase() ?? ''] ?? 0) === 0
       )"
     >
       <div class="d-flex">
@@ -75,6 +75,7 @@ fetchAppStatsData();
           'Weight',
           'Remarks',
           'Status',
+          'Price',
           'Created at',
           'Updated at',
           'Created by',
@@ -92,9 +93,17 @@ fetchAppStatsData();
         <td class="border border-dark p-0 m-0">{{ l?.customer?.phone }}</td>
         <td class="border border-dark p-0 m-0">{{ l?.weight }}</td>
         <td class="border border-dark p-0 m-0">{{ l?.remark }}</td>
-        <td class="border border-dark p-0 m-0">
-          <small><strong>ONGOING</strong></small>
+        <td :class="`border border-dark p-0 m-0`">
+          <small
+            ><strong :class="`${l?.status === 'DONE' ? `text-success` : ``}`">{{
+              l?.status ?? "ONGOING"
+            }}</strong></small
+          >
         </td>
+        <td class="border border-dark p-0 m-0">
+          ${{ l?.priceSnapshot?.toFixed(1) }}
+        </td>
+
         <td class="border border-dark p-0 m-0">
           {{ formatDateTimeShort(l?.createdAt) }}
         </td>

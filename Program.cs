@@ -12,6 +12,8 @@ builder?.Services.Configure<JsonOptions>(o =>
 {
     o.SerializerOptions.Converters.Add(new JsonDateTimeConverter());
     o.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+
 });
 
 var app = builder?.Build();
@@ -29,6 +31,71 @@ app.UseStaticFiles();
 
 Console.WriteLine("Open http://localhost:5021 to run app.");
 
+app.MapGet("/api/inventory-summary", (ApplicationDBContext ctx) =>
+{
+    var stores = ctx.Stores?.ToList();
+    var items = ctx.Items?.ToList();
+    var inventory = ctx.Inventory?.ToList();
+    var recordItems = ctx.RecordItems?.ToList();
+
+
+    var inventorySummary = new List<InventorySummary>();
+
+    stores?.ForEach(s =>
+    {
+        items?.ForEach(i =>
+        {
+            // By In/Out
+            var foundQty = inventory
+                ?.Where(inv => inv.ItemId == i.Id && inv.StoreId == s.Id)
+                ?.Aggregate(0.0, (acc, inv) =>
+                {
+                    var qty = inv.Qty;
+
+
+                    if (inv.Mode == InventoryTransactionMode.OUT)
+                    {
+                        qty = -(qty);
+                    }
+
+                    return acc + (qty ?? 0.0);
+                });
+
+            // TODO: By recorditems
+            var foundRecordItems = recordItems
+                ?.Where(r => r.ItemId == i.Id && r.StoreId == s.Id)
+                .Aggregate(0.0, (acc, r) =>
+                {
+                    return acc + (r.Qty ?? 0);
+                }) ?? 0;
+
+            var newInventorySummary = new InventorySummary();
+            newInventorySummary.Item = i;
+            newInventorySummary.Store = s;
+            newInventorySummary.Qty = foundQty - foundRecordItems;
+
+
+            inventorySummary.Add(newInventorySummary);
+        });
+    });
+
+    return inventorySummary;
+});
+
+app.MapGet("/api/inventory", (ApplicationDBContext ctx) =>
+    ctx.Inventory
+    ?.Include(i => i.Item)
+    ?.Include(i => i.Store)
+
+);
+app.MapPost("/api/inventory-save-bulk", (
+    ApplicationDBContext ctx,
+    List<Inventory> inventory
+) =>
+{
+    ctx.UpdateRange(inventory);
+    ctx.SaveChanges();
+});
 
 app.MapGet("/api/testdt", (ApplicationDBContext ctx) =>
     DateTime.Now.ToUniversalTime().ToString("o")
