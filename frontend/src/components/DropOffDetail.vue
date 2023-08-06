@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import VueSelect from "vue-select";
-import { fetchCustomers } from "../fetchers";
+import { fetchCustomers, fetchLaundryRecord } from "../fetchers";
 import { Ref } from "vue";
 import { ctx } from "../main";
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const customers = ref([]) as Ref<any[]>;
-const record = ref({}) as Ref<any>;
+const record = ref({ recordItems: [] }) as Ref<any>;
 const saveLoading = ref(false);
-
+const route = useRoute();
 const router = useRouter();
 
 const fetchCustomersData = async () => {
@@ -17,6 +17,20 @@ const fetchCustomersData = async () => {
 
   if (d) {
     customers.value = d;
+  }
+};
+
+const fetchDropOffDetailData = async () => {
+  if (isNaN(parseInt(route.params?.id as string))) {
+    return;
+  }
+  const d = await fetchLaundryRecord({
+    apiKey: ctx.value.apiKey ?? "",
+    id: route.params?.id,
+  });
+
+  if (d) {
+    record.value = d;
   }
 };
 
@@ -47,6 +61,7 @@ const handleSave = async () => {
   }
 };
 
+fetchDropOffDetailData();
 fetchCustomersData();
 </script>
 <template>
@@ -88,10 +103,16 @@ fetchCustomersData();
         <input
           placeholder="Weight..."
           class="form-control form-control-sm"
+          :value="record.weight"
           @input="
             (e) => {
               console.log(e);
-              // record.weight = (e.target as HTMLInputElement).value
+
+              const v = isNaN(parseFloat((e.target as HTMLInputElement).value))
+                ? 0
+                : parseFloat((e.target as HTMLInputElement).value)
+
+              record.weight = v
             }
           "
         />
@@ -103,13 +124,30 @@ fetchCustomersData();
         <textarea
           placeholder="Remark..."
           class="form-control form-control-sm"
+          :value="record.remark"
           @input="e => {
           record.remark = (e.target as HTMLInputElement).value
         }"
         />
       </div>
       <div>
-        <small><strong>Additional Items</strong></small>
+        <div class="d-flex align-items-center">
+          <div>
+            <small><strong>Additional Items</strong></small>
+          </div>
+          <div>
+            <button
+              class="btn btn-sm btn-primary px-1 py-0"
+              @click="
+                () => {
+                  record.recordItems?.push({});
+                }
+              "
+            >
+              <VIcon icon="mdi-plus" />
+            </button>
+          </div>
+        </div>
       </div>
       <div>
         <div
@@ -125,6 +163,10 @@ fetchCustomersData();
             >
               {{ h }}
             </th>
+            <tr v-for="(i, i_) in record?.recordItems ?? []">
+              <td class="border border-dark p-0 m-0">{{ i_ + 1 }}</td>
+              <td class="border border-dark p-0 m-0">{{ i?.name ?? "" }}</td>
+            </tr>
           </table>
         </div>
       </div>

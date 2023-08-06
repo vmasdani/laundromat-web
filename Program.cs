@@ -1,4 +1,5 @@
 
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,8 +8,10 @@ builder?.Services.AddSqlite<ApplicationDBContext>("Data Source=laundromatweb.sql
 builder?.Services.AddDbContext<ApplicationDBContext>(o =>
     o.UseSqlite("Data Source=laundromatweb.sqlite3")
 );
-builder?.Services.Configure<JsonOptions>(o=>{
+builder?.Services.Configure<JsonOptions>(o =>
+{
     o.SerializerOptions.Converters.Add(new JsonDateTimeConverter());
+    o.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
 var app = builder?.Build();
@@ -33,7 +36,16 @@ app.MapGet("/api/testdt", (ApplicationDBContext ctx) =>
 app.MapGet("/api/laundryrecords", (ApplicationDBContext ctx) =>
     ctx.LaundryRecords
         ?.Include(r => r.Customer)
+        ?.Include(r => r.RecordItems)
 );
+app.MapGet("/api/laundryrecords/{id}", (ApplicationDBContext ctx, int id) =>
+    ctx.LaundryRecords
+        ?.Where(r => r.Id == id)
+        ?.Include(r => r.Customer)
+        ?.Include(r => r.RecordItems)
+        ?.FirstOrDefault()
+);
+
 app.MapPost("/api/laundryrecords-save-bulk", (
     ApplicationDBContext ctx,
     List<LaundryRecord> laundryRecords

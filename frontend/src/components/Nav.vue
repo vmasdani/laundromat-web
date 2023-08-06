@@ -63,6 +63,11 @@
               <li>
                 <a class="dropdown-item" href="/#/employees">Employees</a>
               </li>
+              <li>
+                <a class="dropdown-item" href="/#/shopsettings"
+                  >Shop Settings</a
+                >
+              </li>
             </ul>
           </li>
         </ul>

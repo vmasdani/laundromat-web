@@ -103,7 +103,7 @@ fetchAppStatsData();
         </td>
         <td class="border border-dark p-0 m-0"></td>
 
-        <td class="border border-dark p-0 m-0">0</td>
+        <td class="border border-dark p-0 m-0">{{ l?.recordItems?.length }}</td>
         <td class="border border-dark p-0 m-0">
           <div>
             <a :href="`/#/dropoffs/${l?.id}`">

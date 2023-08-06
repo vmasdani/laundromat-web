@@ -19,6 +19,7 @@ import * as directives from "vuetify/directives";
 import { createVuetify } from "vuetify";
 import { aliases, mdi } from "vuetify/iconsets/mdi";
 import DropOffDetailVue from "./components/DropOffDetail.vue";
+import ShopPriceSettingVue from "./components/ShopPriceSetting.vue";
 
 export const ctx = ref({ apiKey: null as string | null });
 
@@ -41,6 +42,7 @@ const routes = [
   { path: "/stores", component: StoresVue },
   { path: "/inventory", component: InventoryVue },
   { path: "/dropoffs/:id", component: DropOffDetailVue },
+  { path: "/shopsettings", component: ShopPriceSettingVue },
 ];
 
 const router = createRouter({
