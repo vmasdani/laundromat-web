@@ -9,6 +9,15 @@ export const formatDateTimeShort = (s?: string | null | undefined) => {
   }
 };
 
-export type LaundryRecordStatus = "ONGOING" | "DONE";
-export const laundryRecordStatuses:LaundryRecordStatus[] = ["ONGOING" , "DONE"];
-
+export type LaundryRecordStatus =
+  | "ONGOING"
+  | "DONE"
+  | "PROCESSING"
+  | "PICKED_UP"
+  | "DISGUARDED";
+export const laundryRecordStatuses: LaundryRecordStatus[] = [
+  "PROCESSING",
+  "PICKED_UP",
+  "DONE",
+  "DISGUARDED",
+];

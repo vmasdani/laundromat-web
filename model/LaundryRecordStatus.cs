@@ -1,4 +1,4 @@
 public enum LaundryRecordStatus
 {
-    ONGOING, DONE
+    ONGOING, DONE, PROCESSING, PICKED_UP, DISGUARDED
 }

@@ -16,5 +16,6 @@ public class LaundryRecord : BaseModel
     public bool? IsDiscount { get; set; }
     public double? DiscountPrice { get; set; }
     public LaundryRecordStatus? Status { get; set; }
+    public bool? Paid { get; set; }
 
 }

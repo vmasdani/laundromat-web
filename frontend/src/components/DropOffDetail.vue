@@ -31,6 +31,10 @@ const fetchStoresData = async () => {
 
   if (d) {
     stores.value = d;
+
+    if ((d?.length ?? 0) > 0 && !record?.value?.storeId) {
+      record.value.storeId = d?.[0]?.id;
+    }
   }
 };
 const fetchItemsData = async () => {
@@ -138,11 +142,12 @@ fetchCustomersData();
 </script>
 <template>
   <div class="container">
-    <div class="d-flex align-items-center">
+    <div v-if="!saveLoading" class="d-flex align-items-center">
       <div><h4>Drop Off Detail</h4></div>
-      <div>
+
+      <div class="mx-2">
         <button
-          class="btn btn-sm btn-primary px-1 py-0"
+          class="btn btn-sm btn-primary px-2 py-1"
           @click="
             () => {
               handleSave();
@@ -152,7 +157,21 @@ fetchCustomersData();
           Save
         </button>
       </div>
+
+      <div class="mx-2">
+        <button
+          class="btn btn-sm btn-danger px-2 py-1"
+          @click="
+            () => {
+              router.push('/');
+            }
+          "
+        >
+          Cancel
+        </button>
+      </div>
     </div>
+    <div v-else><div class="spinner-border spinner-border-sm"></div></div>
     <div><hr class="border border-dark" /></div>
     <div>
       <div>
@@ -171,19 +190,52 @@ fetchCustomersData();
       </div>
 
       <div>
-        <small><strong>Customer</strong></small>
+        <small
+          ><strong
+            >Customer |
+            <span class="text-success"
+              >Selected: {{ record?.customer?.name }} ({{
+                record?.customer?.phone
+              }})</span
+            >
+          </strong></small
+        >
       </div>
-      <VueSelect
-        :options="customers"
-        :getOptionLabel="(c: any) => `${c?.phone}: ${c?.name}`"
-        @update:modelValue="(c: any) => {
-          record.customerId = c?.id;
-          record.customer = c
-        }"
-        :modelValue="
-          customers.find((c) => `${c?.id}` === `${record?.customerId}`)
-        "
-      />
+      <div class="d-flex">
+        <div class="flex-grow-1">
+          <div>
+            <small><strong>Search customer by phone</strong></small>
+          </div>
+          <div>
+            <VueSelect
+              placeholder="By phone..."
+              :options="customers"
+              :getOptionLabel="(c: any) => `${c?.phone} (${c?.name})`"
+              @update:modelValue="(c: any) => {
+                record.customerId = c?.id;
+                record.customer = c
+              }"
+            />
+          </div>
+        </div>
+        <div class="flex-grow-1">
+          <div>
+            <small><strong>Search customer by name</strong></small>
+          </div>
+          <div>
+            <VueSelect
+              placeholder="By name..."
+              :options="customers"
+              :getOptionLabel="(c: any) => `${c?.name}`"
+              @update:modelValue="(c: any) => {
+                record.customerId = c?.id;
+                record.customer = c
+              }"
+            />
+          </div>
+        </div>
+      </div>
+
       <div v-if="!record?.storeId">
         <small><strong>No store specified</strong></small>
       </div>
@@ -204,7 +256,7 @@ fetchCustomersData();
               (
                 (stores?.find((s) => `${s?.id}` === `${record?.storeId}`)
                   ?.pricePerWeight ?? 0) * (record?.weight ?? 0)
-              )?.toFixed(1)
+              )?.toFixed(2)
             }}</strong
           ></small
         >
@@ -268,7 +320,7 @@ fetchCustomersData();
                 :options="inventorySummary"
                 :getOptionLabel="(i: any) => `#${i?.store?.name}: #${i?.item?.id}: ${i?.item?.name} | qty = ${i?.qty}`"
                 @update:modelValue="(i: any) => {
-                  windowx.alert(JSON.stringify(i))
+                  // windowx.alert(JSON.stringify(i))
                   console.log(i)
 
                   newRecordItem.storeId = i?.store?.id
@@ -431,15 +483,70 @@ fetchCustomersData();
         </div>
       </div>
 
+      <div>
+        <small><strong>Paid</strong></small>
+      </div>
+
+      <div class="d-flex">
+        <div
+          v-for="s in [
+            { label: 'Paid', value: true },
+            { label: 'Unpaid', value: false },
+          ]"
+        >
+          <button
+            :class="`btn btn-sm ${
+              record?.paid === s.value ? `btn-primary` : `btn-outline-primary`
+            }`"
+            @click="
+              () => {
+                record.paid = s.value;
+              }
+            "
+          >
+            {{ s.label }}
+          </button>
+        </div>
+      </div>
+
       <div><hr class="border border-dark" /></div>
       <div>
         <h5>
           Final price: $<span v-if="record?.isDiscount">{{
             record?.discountPrice
           }}</span>
-          <span v-else>{{ calculatedSnapshotPrice?.toFixed(1) }}</span>
+          <span v-else>{{ calculatedSnapshotPrice?.toFixed(2) }}</span>
         </h5>
       </div>
+
+      <div v-if="!saveLoading" class="d-flex align-items-center">
+        <div class="mx-2">
+          <button
+            class="btn btn-sm btn-primary px-2 py-1"
+            @click="
+              () => {
+                handleSave();
+              }
+            "
+          >
+            Save
+          </button>
+        </div>
+
+        <div class="mx-2">
+          <button
+            class="btn btn-sm btn-danger px-2 py-1"
+            @click="
+              () => {
+                router.push('/');
+              }
+            "
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+      <div v-else><div class="spinner-border spinner-border-sm"></div></div>
     </div>
   </div>
 </template>

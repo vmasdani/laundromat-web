@@ -75,6 +75,7 @@ fetchAppStatsData();
           'Weight',
           'Remarks',
           'Status',
+          'Paid',
           'Price',
           'Created at',
           'Updated at',
@@ -91,17 +92,24 @@ fetchAppStatsData();
         <td class="border border-dark p-0 m-0">{{ i + 1 }}</td>
         <td class="border border-dark p-0 m-0">{{ l?.customer?.name }}</td>
         <td class="border border-dark p-0 m-0">{{ l?.customer?.phone }}</td>
-        <td class="border border-dark p-0 m-0">{{ l?.weight }}</td>
+        <td class="border border-dark p-0 m-0">{{ l?.weight?.toFixed(2) }}</td>
         <td class="border border-dark p-0 m-0">{{ l?.remark }}</td>
         <td :class="`border border-dark p-0 m-0`">
           <small
             ><strong :class="`${l?.status === 'DONE' ? `text-success` : ``}`">{{
-              l?.status ?? "ONGOING"
+              l?.status ?? "PROCESSING"
+            }}</strong></small
+          >
+        </td>
+        <td :class="`border border-dark p-0 m-0`">
+          <small
+            ><strong :class="`${l?.paid ? `text-success` : `text-danger`}`">{{
+              l?.paid ? "Paid" : "Unpaid"
             }}</strong></small
           >
         </td>
         <td class="border border-dark p-0 m-0">
-          ${{ l?.priceSnapshot?.toFixed(1) }}
+          ${{ l?.priceSnapshot?.toFixed(2) }}
         </td>
 
         <td class="border border-dark p-0 m-0">
