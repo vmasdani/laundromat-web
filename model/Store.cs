@@ -7,4 +7,5 @@ public class Store : BaseModel
     public string? Address { get; set; }
 
     public double? PricePerWeight { get; set; }
+    public double? MinimumDropOffWeight { get; set; }
 }

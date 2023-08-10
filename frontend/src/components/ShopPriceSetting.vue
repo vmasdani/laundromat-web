@@ -148,6 +148,7 @@ fetchStoresData();
             'Name',
             'Address',
             'Price/Weight Unit',
+            'Min DropOff Weight',
             'Created',
             'Updated',
           ]"
@@ -173,6 +174,21 @@ fetchStoresData();
                     : parseFloat((e.target as HTMLInputElement).value)
 
                 s.pricePerWeight = v
+            }"
+          />
+        </td>
+        <td class="border border-dark p-0 m-0">
+          <input
+            class="form-control form-control-sm"
+            style="width: 75px"
+            :value="s.minimumDropOffWeight"
+            placeholder="minimumDropOffWeight..."
+            @input="(e) => {
+                const v = isNaN(parseFloat((e.target as HTMLInputElement).value)) 
+                    ? 0
+                    : parseFloat((e.target as HTMLInputElement).value)
+
+                s.minimumDropOffWeight = v
             }"
           />
         </td>

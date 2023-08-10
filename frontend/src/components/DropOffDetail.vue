@@ -102,6 +102,19 @@ const calculatedSnapshotPrice = computed(() => {
 const handleSave = async () => {
   console.log("save");
 
+  const foundStore = stores.value?.find(
+    (s) => `${s?.id}` === `${record.value?.storeId}`
+  );
+
+  if (
+    (foundStore?.minimumDropOffWeight ?? 0) > 0 &&
+    (record.value?.weight ?? 0) < (foundStore?.minimumDropOffWeight ?? 0)
+  ) {
+    alert(`Minimum weight must be ${foundStore?.minimumDropOffWeight ?? 0}.`);
+
+    return;
+  }
+
   const priceSnapshot = calculatedSnapshotPrice.value;
 
   console.log("snapshotprice =", priceSnapshot);
@@ -245,13 +258,19 @@ fetchCustomersData();
             >Weight (
             <span v-if="record?.storeId"
               >${{
-                stores?.find((s) => `${s?.id}` === `${record?.storeId}`)
-                  ?.pricePerWeight
+                stores
+                  ?.find((s) => `${s?.id}` === `${record?.storeId}`)
+                  ?.pricePerWeight?.toFixed(2)
               }}</span
             ><span v-else="record?.storeId" class="text-danger"
               >No store specified</span
             >
-            per weight unit) =
+            per weight unit, minimum weight
+            {{
+              stores
+                ?.find((s) => `${s?.id}` === `${record?.storeId}`)
+                ?.minimumDropOffWeight?.toFixed(2)
+            }}) =
             {{
               (
                 (stores?.find((s) => `${s?.id}` === `${record?.storeId}`)
