@@ -21,7 +21,9 @@ import { aliases, mdi } from "vuetify/iconsets/mdi";
 import DropOffDetailVue from "./components/DropOffDetail.vue";
 import ShopPriceSettingVue from "./components/ShopPriceSetting.vue";
 
-export const ctx = ref({ apiKey: null as string | null });
+export const ctx = ref({
+  apiKey: localStorage.getItem("apiKey") as string | null,
+});
 
 const vuetify = createVuetify({
   components,

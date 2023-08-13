@@ -25,6 +25,9 @@ const inventorySummary = ref([]) as Ref<any[]>;
 const newRecordItem = ref({}) as Ref<any>;
 const items = ref([]) as Ref<any[]>;
 const stores = ref([]) as Ref<any[]>;
+const searchByName = ref("");
+const searchByPhone = ref("");
+const saveCustomerLoading = ref(false);
 
 const fetchStoresData = async () => {
   const d = await fetchStores({ apiKey: ctx.value.apiKey ?? "" });
@@ -74,6 +77,40 @@ const fetchDropOffDetailData = async () => {
     record.value = d;
   }
 };
+
+const handleSaveNewCustomer = async () => {
+  try {
+    saveCustomerLoading.value = true;
+    const resp = await fetch(
+      `${window.location.origin}/api/customers-save-bulk`,
+      {
+        method: "post",
+        headers: {
+          "content-type": "application/json",
+          authorization: ctx.value.apiKey ?? "",
+        },
+        body: JSON.stringify([
+          {
+            name: searchByName.value,
+            phone: searchByPhone.value,
+          },
+        ]),
+      }
+    );
+
+    if (resp.status !== 200) {
+      throw await resp.text();
+    }
+
+    window.alert("Customer successfully added.");
+    fetchCustomersData();
+  } catch (e) {
+    return "";
+  } finally {
+    saveCustomerLoading.value = false;
+  }
+};
+
 fetchInventorySummaryData();
 fetchItemsData();
 fetchStoresData();
@@ -118,6 +155,23 @@ const handleSave = async () => {
   const priceSnapshot = calculatedSnapshotPrice.value;
 
   console.log("snapshotprice =", priceSnapshot);
+
+  let finalSnapshot = priceSnapshot;
+
+  if (priceSnapshot < 10 && !record.value?.isDiscount) {
+    if (
+      window.confirm(
+        `Total price is less than $10, round up to $10? (If you click cancel, it'll be $${priceSnapshot})`
+      )
+    ) {
+      finalSnapshot = 10;
+    }
+  }
+
+  if (record.value?.isDiscount) {
+    finalSnapshot = record.value.discountPrice;
+  }
+
   try {
     saveLoading.value = true;
     const resp = await fetch(
@@ -131,7 +185,7 @@ const handleSave = async () => {
         body: JSON.stringify([
           {
             ...record.value,
-            priceSnapshot: priceSnapshot,
+            priceSnapshot: finalSnapshot,
           },
         ]),
       }
@@ -149,6 +203,35 @@ const handleSave = async () => {
     saveLoading.value = false;
   }
 };
+
+const searchedCustomers = computed(() => {
+  console.log(searchByName.value, searchByPhone.value);
+  if (searchByName.value === "" && searchByPhone.value === "") {
+    return [];
+  }
+
+  return customers.value.filter(
+    (c) =>
+      (searchByName.value === ""
+        ? true
+        : `${c?.name?.toLowerCase() ?? ""}`?.includes(
+            searchByName.value.toLowerCase()
+          )) &&
+      (searchByPhone.value === ""
+        ? true
+        : `${c?.phone?.toLowerCase() ?? ""}`?.includes(
+            searchByPhone.value.toLowerCase()
+          ))
+  );
+});
+
+const foundIdenticalCustomerData = computed(() => {
+  return customers.value.find(
+    (c) =>
+      `${c?.name?.toLowerCase() ?? ""}` === searchByName.value.toLowerCase() &&
+      `${c?.phone?.toLowerCase() ?? ""}` === searchByPhone.value.toLowerCase()
+  );
+});
 
 fetchDropOffDetailData();
 fetchCustomersData();
@@ -202,6 +285,7 @@ fetchCustomersData();
         />
       </div>
 
+      <div><hr class="border border-dark" /></div>
       <div>
         <small
           ><strong
@@ -215,6 +299,79 @@ fetchCustomersData();
         >
       </div>
       <div class="d-flex">
+        <div class="flex-grow-1">
+          <small><strong>Search by Name</strong></small>
+          <input
+            class="form-control form-control-sm"
+            placeholder="Search by name..."
+            @input="e => {
+              searchByName = (e.target as HTMLInputElement).value
+            }"
+          />
+        </div>
+        <div class="flex-grow-1">
+          <small><strong>Search by phone</strong></small>
+          <input
+            class="form-control form-control-sm"
+            placeholder="Search by phone..."
+            @input="e => {
+              searchByPhone = (e.target as HTMLInputElement).value
+            }"
+          />
+        </div>
+      </div>
+      <div
+        v-if="searchByName !== '' || searchByPhone !== ''"
+        class="border border-dark overflow-auto"
+        style="height: 15vh; resize: vertical"
+      >
+        <table class="table table-sm">
+          <tr v-for="c in searchedCustomers">
+            <td class="border border-dark p-0 m-0">{{ c?.name }}</td>
+            <td class="border border-dark p-0 m-0">{{ c?.phone }}</td>
+            <td class="border border-dark p-0 m-0">
+              <button
+                class="btn btn-sm btn-outline-primary px-1 py-0"
+                @click="
+                  () => {
+                    record.customerId = c?.id;
+                    record.customer = c;
+                  }
+                "
+              >
+                Select
+              </button>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div
+        v-if="
+          !foundIdenticalCustomerData &&
+          searchByName !== '' &&
+          searchByPhone !== ''
+        "
+      >
+        <div>
+          Click
+          <span
+            v-if="!saveCustomerLoading"
+            @click="
+              () => {
+                handleSaveNewCustomer();
+              }
+            "
+            style="cursor: pointer"
+            class="text-primary"
+            >here</span
+          >
+          <span v-else>here</span>
+          to add customer with name:
+          <span class="text-primary">{{ searchByName }}</span> and phone:
+          <span class="text-primary">{{ searchByPhone }}</span>
+        </div>
+      </div>
+      <!-- <div class="d-flex">
         <div class="flex-grow-1">
           <div>
             <small><strong>Search customer by phone</strong></small>
@@ -247,7 +404,9 @@ fetchCustomersData();
             />
           </div>
         </div>
-      </div>
+      </div> -->
+
+      <div><hr class="border border-dark" /></div>
 
       <div v-if="!record?.storeId">
         <small><strong>No store specified</strong></small>

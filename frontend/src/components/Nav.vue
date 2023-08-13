@@ -1,4 +1,7 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ctx } from "../main";
+const localStoragex = localStorage;
+</script>
 <template>
   <nav class="navbar navbar-expand-lg bg-light">
     <div class="container-fluid">
@@ -15,7 +18,7 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNavDropdown">
-        <ul class="navbar-nav">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <!-- <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="#">Home</a>
           </li>
@@ -71,6 +74,17 @@
             </ul>
           </li>
         </ul>
+        <button
+          class="btn btn-outline-danger"
+          @click="
+            () => {
+              ctx.apiKey = null;
+              localStoragex.removeItem('apiKey');
+            }
+          "
+        >
+          Logout
+        </button>
       </div>
     </div>
   </nav>

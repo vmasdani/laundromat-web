@@ -14,10 +14,10 @@ export type LaundryRecordStatus =
   | "DONE"
   | "PROCESSING"
   | "PICKED_UP"
-  | "DISGUARDED";
+  | "DISCARDED";
 export const laundryRecordStatuses: LaundryRecordStatus[] = [
   "PROCESSING",
   "PICKED_UP",
   "DONE",
-  "DISGUARDED",
+  "DISCARDED",
 ];
