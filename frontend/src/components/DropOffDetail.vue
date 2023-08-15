@@ -17,7 +17,11 @@ import { computed } from "vue";
 const windowx = window;
 
 const customers = ref([]) as Ref<any[]>;
-const record = ref({ recordItems: [] }) as Ref<any>;
+const record = ref({
+  recordItems: [],
+  status: "PROCESSING",
+  paid: false,
+}) as Ref<any>;
 const saveLoading = ref(false);
 const route = useRoute();
 const router = useRouter();
@@ -27,6 +31,8 @@ const items = ref([]) as Ref<any[]>;
 const stores = ref([]) as Ref<any[]>;
 const searchByName = ref("");
 const searchByPhone = ref("");
+const searchByAddress = ref("");
+
 const saveCustomerLoading = ref(false);
 
 const fetchStoresData = async () => {
@@ -133,24 +139,24 @@ const calculatedSnapshotPrice = computed(() => {
     0.0
   );
 
-  return finalPricePerweight + recordItemPrice;
+  return 10 + finalPricePerweight + recordItemPrice;
 });
 
 const handleSave = async () => {
   console.log("save");
 
-  const foundStore = stores.value?.find(
-    (s) => `${s?.id}` === `${record.value?.storeId}`
-  );
+  // const foundStore = stores.value?.find(
+  //   (s) => `${s?.id}` === `${record.value?.storeId}`
+  // );
 
-  if (
-    (foundStore?.minimumDropOffWeight ?? 0) > 0 &&
-    (record.value?.weight ?? 0) < (foundStore?.minimumDropOffWeight ?? 0)
-  ) {
-    alert(`Minimum weight must be ${foundStore?.minimumDropOffWeight ?? 0}.`);
+  // if (
+  //   (foundStore?.minimumDropOffWeight ?? 0) > 0 &&
+  //   (record.value?.weight ?? 0) < (foundStore?.minimumDropOffWeight ?? 0)
+  // ) {
+  //   alert(`Minimum weight must be ${foundStore?.minimumDropOffWeight ?? 0}.`);
 
-    return;
-  }
+  //   return;
+  // }
 
   const priceSnapshot = calculatedSnapshotPrice.value;
 
@@ -158,15 +164,15 @@ const handleSave = async () => {
 
   let finalSnapshot = priceSnapshot;
 
-  if (priceSnapshot < 10 && !record.value?.isDiscount) {
-    if (
-      window.confirm(
-        `Total price is less than $10, round up to $10? (If you click cancel, it'll be $${priceSnapshot})`
-      )
-    ) {
-      finalSnapshot = 10;
-    }
-  }
+  // if (priceSnapshot < 10 && !record.value?.isDiscount) {
+  //   if (
+  //     window.confirm(
+  //       `Total price is less than $10, round up to $10? (If you click cancel, it'll be $${priceSnapshot})`
+  //     )
+  //   ) {
+  //     finalSnapshot = 10;
+  //   }
+  // }
 
   if (record.value?.isDiscount) {
     finalSnapshot = record.value.discountPrice;
@@ -206,7 +212,11 @@ const handleSave = async () => {
 
 const searchedCustomers = computed(() => {
   console.log(searchByName.value, searchByPhone.value);
-  if (searchByName.value === "" && searchByPhone.value === "") {
+  if (
+    searchByName.value === "" &&
+    searchByPhone.value === "" &&
+    searchByAddress.value === ""
+  ) {
     return [];
   }
 
@@ -221,6 +231,11 @@ const searchedCustomers = computed(() => {
         ? true
         : `${c?.phone?.toLowerCase() ?? ""}`?.includes(
             searchByPhone.value.toLowerCase()
+          )) &&
+      (searchByAddress.value === ""
+        ? true
+        : `${c?.phone?.toLowerCase() ?? ""}`?.includes(
+            searchByAddress.value.toLowerCase()
           ))
   );
 });
@@ -229,7 +244,10 @@ const foundIdenticalCustomerData = computed(() => {
   return customers.value.find(
     (c) =>
       `${c?.name?.toLowerCase() ?? ""}` === searchByName.value.toLowerCase() &&
-      `${c?.phone?.toLowerCase() ?? ""}` === searchByPhone.value.toLowerCase()
+      `${c?.phone?.toLowerCase() ?? ""}` ===
+        searchByPhone.value.toLowerCase() &&
+      `${c?.address?.toLowerCase() ?? ""}` ===
+        searchByAddress.value.toLowerCase()
   );
 });
 
@@ -319,9 +337,21 @@ fetchCustomersData();
             }"
           />
         </div>
+        <div class="flex-grow-1">
+          <small><strong>Search by address</strong></small>
+          <input
+            class="form-control form-control-sm"
+            placeholder="Search by address..."
+            @input="e => {
+              searchByAddress = (e.target as HTMLInputElement).value
+            }"
+          />
+        </div>
       </div>
       <div
-        v-if="searchByName !== '' || searchByPhone !== ''"
+        v-if="
+          searchByName !== '' || searchByPhone !== '' || searchByAddress !== ''
+        "
         class="border border-dark overflow-auto"
         style="height: 15vh; resize: vertical"
       >
@@ -329,6 +359,8 @@ fetchCustomersData();
           <tr v-for="c in searchedCustomers">
             <td class="border border-dark p-0 m-0">{{ c?.name }}</td>
             <td class="border border-dark p-0 m-0">{{ c?.phone }}</td>
+            <td class="border border-dark p-0 m-0">{{ c?.address }}</td>
+
             <td class="border border-dark p-0 m-0">
               <button
                 class="btn btn-sm btn-outline-primary px-1 py-0"
@@ -349,7 +381,8 @@ fetchCustomersData();
         v-if="
           !foundIdenticalCustomerData &&
           searchByName !== '' &&
-          searchByPhone !== ''
+          searchByPhone !== '' &&
+          searchByAddress !== ''
         "
       >
         <div>
@@ -367,8 +400,9 @@ fetchCustomersData();
           >
           <span v-else>here</span>
           to add customer with name:
-          <span class="text-primary">{{ searchByName }}</span> and phone:
-          <span class="text-primary">{{ searchByPhone }}</span>
+          <span class="text-primary">{{ searchByName }}</span
+          >, phone: <span class="text-primary">{{ searchByPhone }}</span
+          >, address: <span class="text-primary">{{ searchByAddress }}</span>
         </div>
       </div>
       <!-- <div class="d-flex">
@@ -424,20 +458,22 @@ fetchCustomersData();
             ><span v-else="record?.storeId" class="text-danger"
               >No store specified</span
             >
-            per weight unit, minimum weight
+            per weight unit) =
+
+            <!-- minimum weight
             {{
               stores
                 ?.find((s) => `${s?.id}` === `${record?.storeId}`)
                 ?.minimumDropOffWeight?.toFixed(2)
-            }}) =
+            }}) = -->
             {{
               (
                 (stores?.find((s) => `${s?.id}` === `${record?.storeId}`)
                   ?.pricePerWeight ?? 0) * (record?.weight ?? 0)
               )?.toFixed(2)
             }}</strong
-          ></small
-        >
+          >
+        </small>
       </div>
       <div>
         <input
@@ -481,6 +517,7 @@ fetchCustomersData();
                 class="form-control form-control-sm"
                 placeholder="Qty..."
                 style="width: 75px"
+                :value="newRecordItem.qty"
                 @input="e=>{ 
                   console.log((e.target as HTMLInputElement).value)
 
@@ -506,6 +543,13 @@ fetchCustomersData();
                   
                 }"
                 placeholder="Select item.."
+                :modelValue="
+                  inventorySummary?.find(
+                    (i) =>
+                      `${i?.store?.id}` === `${newRecordItem?.storeId}` &&
+                      `${i?.item?.id}` === `${newRecordItem?.itemId}`
+                  )
+                "
               />
             </div>
 
@@ -526,6 +570,23 @@ fetchCustomersData();
                       `Stock insufficient. In stock: ${foundInventorySummary?.qty}, needed: ${newRecordItem.qty}`
                     );
                     return;
+                  }
+
+                  if (!(newRecordItem?.storeId) || !(newRecordItem?.itemId)) {
+                    windowx.alert('Store/item ID null')
+                    return;
+                  }
+
+                  if ((newRecordItem?.qty ?? 0) === 0) {
+                    windowx.alert('Qty must be filled.')
+                    return;
+                  }
+
+                  if(
+                    record?.recordItems?.find((i: any) => `${i?.storeId}`===`${newRecordItem?.storeId}` && `${i?.itemId}`===`${newRecordItem?.itemId}`)
+                  ){
+                    windowx.alert('Item already exists.')
+                    return
                   }
 
                   record.recordItems?.push(newRecordItem);
@@ -648,7 +709,9 @@ fetchCustomersData();
         <div v-for="s in laundryRecordStatuses">
           <button
             :class="`btn btn-sm ${
-              record?.status === s ? `btn-primary` : `btn-outline-primary`
+              (record?.status ?? 'PROCESSING') === s
+                ? `btn-primary`
+                : `btn-outline-primary`
             }`"
             @click="
               () => {
@@ -674,7 +737,9 @@ fetchCustomersData();
         >
           <button
             :class="`btn btn-sm ${
-              record?.paid === s.value ? `btn-primary` : `btn-outline-primary`
+              (record?.paid ?? false) === s.value
+                ? `btn-primary`
+                : `btn-outline-primary`
             }`"
             @click="
               () => {
