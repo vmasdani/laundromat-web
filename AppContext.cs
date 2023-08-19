@@ -10,7 +10,9 @@ class ApplicationDBContext : DbContext
     public DbSet<Store>? Stores { get; set; }
     public DbSet<LaundryRecord>? LaundryRecords { get; set; }
     public DbSet<RecordItem>? RecordItems { get; set; }
-    
+    public DbSet<AdminConfig>? AdminConfigs { get; set; }
+
+
 
 
     public override int SaveChanges()

@@ -14,6 +14,22 @@ export const fetchItems = async (params: { apiKey?: any }) => {
   }
 };
 
+export const fetchUsers = async (params: { apiKey?: any }) => {
+  try {
+    const resp = await fetch(`${window.location.origin}/api/users`, {
+      headers: { authorization: params.apiKey ?? "" },
+    });
+    if (resp.status !== 200) {
+      throw await resp.text();
+    }
+
+    return await resp.json();
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+};
+
 export const fetchInventorySummary = async (params: { apiKey?: any }) => {
   try {
     const resp = await fetch(

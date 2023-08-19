@@ -1,5 +1,8 @@
 
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using JWT.Algorithms;
+using JWT.Builder;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,17 +22,88 @@ builder?.Services.Configure<JsonOptions>(o =>
 var app = builder?.Build();
 
 
+
 using (var scope = app?.Services.CreateScope())
 {
     var ctx = scope?.ServiceProvider.GetRequiredService<ApplicationDBContext>();
     ctx?.Database.Migrate();
+
+    InitProgram.init(ctx);
 }
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
 
-Console.WriteLine("Open http://localhost:5021 to run app.");
+Console.WriteLine("Open http://localhost:5021 or Open http://localhost:5000 to run app.");
+
+var routeWhitelists = new List<string>();
+routeWhitelists.Add("/api/login");
+
+// Middlewar
+app?.Use(async (ctx, next) =>
+{
+    Console.WriteLine($"{ctx.Request.Method} {ctx.Request.Path}");
+
+    if (routeWhitelists.Where(w => ctx.Request.Path.ToString().StartsWith(w)).FirstOrDefault() != null)
+    {
+        Console.WriteLine($"Whitelist {ctx.Request.Path}");
+        await next.Invoke();
+        return;
+    }
+
+    await next.Invoke();
+});
+
+
+app.MapPost("/api/login", (ApplicationDBContext ctx, LoginBody b) =>
+{
+    // Check admin login first
+    if (b.Username?.ToLower() == "admin" || b.Username?.ToLower() == "administrator")
+    {
+        var adminConfig = ctx?.AdminConfigs?.FirstOrDefault();
+        var adminPassword = adminConfig?.SuperAdminPassword;
+        var jwtSecret = adminConfig?.JwtSecret;
+
+
+        if (BCrypt.Net.BCrypt.Verify(b.Password, adminPassword))
+        {
+            var tok = JwtBuilder.Create()
+                    .WithAlgorithm(new HMACSHA256Algorithm())
+                    .WithSecret(jwtSecret)
+                    .AddClaim("exp", DateTimeOffset.UtcNow.AddYears(1).ToUnixTimeSeconds())
+                    .AddClaim("admin", true)
+                    .Encode();
+
+            return Results.Ok(new LoginReturn()
+            {
+                Token = tok
+            });
+
+        }
+        else
+        {
+            return Results.Problem(detail: "Admin password wrong", statusCode: 401);
+
+        }
+    }
+
+    var foundUser = ctx.Users?.Where(u => u.Username.ToLower() == b.Password).ToList().FirstOrDefault();
+
+
+    if (foundUser == null)
+    {
+        return Results.Problem(detail: "user not found", statusCode: 401);
+    }
+
+    if (!BCrypt.Net.BCrypt.Verify(b.Password, foundUser.Password))
+    {
+        return Results.Problem(detail: "incorrect password", statusCode: 401);
+    }
+
+    return Results.Problem(detail: "Unknown error", statusCode: 500);
+
+});
 
 app.MapGet("/api/inventory-summary", (ApplicationDBContext ctx) =>
 {
@@ -181,10 +255,24 @@ app.MapPost("/api/users-save-bulk", (
 {
     var mappedUsers = users.Select(u =>
     {
-        var foundUser = ctx.Users?.Where(ux => ux.Id == u.Id).FirstOrDefault();
 
-        // return foundUser; 
-        ctx.Entry(foundUser).State = EntityState.Detached;
+        Console.WriteLine(JsonSerializer.Serialize(u));
+        var foundUser = ctx.Users?.Where(ux => ux.Id == u.Id).ToList().FirstOrDefault();
+
+        if (foundUser == null)
+        {
+            foundUser = u;
+            
+        }
+        else
+        {
+            // return foundUser; 
+            ctx.Entry(foundUser).State = EntityState.Detached;
+        }
+
+        Console.WriteLine("FOUNDUSER");
+
+        Console.WriteLine(JsonSerializer.Serialize(foundUser));
 
         if (u.PasswordStr == null || u.PasswordStr == "")
         {
@@ -193,6 +281,10 @@ app.MapPost("/api/users-save-bulk", (
 
         return u;
     });
+
+    Console.WriteLine(JsonSerializer.Serialize(mappedUsers));
+
+
 
     // return users;
     // return mappedUsers;
