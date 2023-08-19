@@ -29,6 +29,7 @@ fetchAppStatsData();
 </script>
 <template>
   <div>
+    <!-- {{ JSON.stringify(ctx.user) }} -->
     <div class="d-flex align-items-center">
       <div>
         <div><h4>Drop-off Page</h4></div>

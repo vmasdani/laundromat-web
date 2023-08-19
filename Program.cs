@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using JWT.Algorithms;
 using JWT.Builder;
+using laundromatweb.Migrations;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 
@@ -58,12 +59,15 @@ app?.Use(async (ctx, next) =>
 
 app.MapPost("/api/login", (ApplicationDBContext ctx, LoginBody b) =>
 {
+
+    var adminConfig = ctx?.AdminConfigs?.FirstOrDefault();
+    var adminPassword = adminConfig?.SuperAdminPassword;
+    var jwtSecret = adminConfig?.JwtSecret;
+
     // Check admin login first
     if (b.Username?.ToLower() == "admin" || b.Username?.ToLower() == "administrator")
     {
-        var adminConfig = ctx?.AdminConfigs?.FirstOrDefault();
-        var adminPassword = adminConfig?.SuperAdminPassword;
-        var jwtSecret = adminConfig?.JwtSecret;
+
 
 
         if (BCrypt.Net.BCrypt.Verify(b.Password, adminPassword))
@@ -88,12 +92,12 @@ app.MapPost("/api/login", (ApplicationDBContext ctx, LoginBody b) =>
         }
     }
 
-    var foundUser = ctx.Users?.Where(u => u.Username.ToLower() == b.Password).ToList().FirstOrDefault();
+    var foundUser = ctx.Users?.Where(u => u.Username.ToLower() == b.Username).ToList().FirstOrDefault();
 
 
     if (foundUser == null)
     {
-        return Results.Problem(detail: "user not found", statusCode: 401);
+        return Results.Problem(detail: "User not found", statusCode: 401);
     }
 
     if (!BCrypt.Net.BCrypt.Verify(b.Password, foundUser.Password))
@@ -101,7 +105,18 @@ app.MapPost("/api/login", (ApplicationDBContext ctx, LoginBody b) =>
         return Results.Problem(detail: "incorrect password", statusCode: 401);
     }
 
-    return Results.Problem(detail: "Unknown error", statusCode: 500);
+
+    var tokx = JwtBuilder.Create()
+                       .WithAlgorithm(new HMACSHA256Algorithm())
+                       .WithSecret(jwtSecret)
+                       .AddClaim("exp", DateTimeOffset.UtcNow.AddYears(1).ToUnixTimeSeconds())
+                       .AddClaim("jti", foundUser?.Id)
+                       .Encode();
+
+    return Results.Ok(new LoginReturn()
+    {
+        Token = tokx
+    });
 
 });
 
@@ -247,7 +262,36 @@ app.MapPost("/api/customers-save-bulk", (
     ctx.SaveChanges();
 });
 
+app.MapGet("/api/adminconfig", (ApplicationDBContext ctx) => ctx.AdminConfigs?.FirstOrDefault());
+app.MapPost("/api/adminconfig", (ApplicationDBContext ctx, AdminConfig adminConfig) =>
+{
+    ctx.Update(adminConfig);
+    ctx.SaveChanges();
+});
+
+
 app.MapGet("/api/users", (ApplicationDBContext ctx) => ctx.Users);
+app.MapGet("/api/user-info", (ApplicationDBContext ctx, HttpRequest r) =>
+{
+    // decode jwt;
+    var adminConfig = ctx?.AdminConfigs?.FirstOrDefault();
+    var adminPassword = adminConfig?.SuperAdminPassword;
+    var jwtSecret = adminConfig?.JwtSecret;
+
+
+    var json = JwtBuilder.Create()
+                     .WithAlgorithm(new HMACSHA256Algorithm())
+                     .WithSecret(jwtSecret)
+                    .Decode<IDictionary<string, object>>(r.Headers["Authorization"]);
+
+
+    var jti = int.Parse($"{json["jti"]}");
+
+
+    return ctx.Users.Where(u => u.Id == jti).ToList().FirstOrDefault();
+
+});
+
 app.MapPost("/api/users-save-bulk", (
     ApplicationDBContext ctx,
     List<User> users
@@ -262,7 +306,7 @@ app.MapPost("/api/users-save-bulk", (
         if (foundUser == null)
         {
             foundUser = u;
-            
+
         }
         else
         {
@@ -273,10 +317,17 @@ app.MapPost("/api/users-save-bulk", (
         Console.WriteLine("FOUNDUSER");
 
         Console.WriteLine(JsonSerializer.Serialize(foundUser));
+        Console.WriteLine($"{foundUser?.Password} {foundUser?.PasswordStr} {u.PasswordStr}");
+
 
         if (u.PasswordStr == null || u.PasswordStr == "")
         {
             u.Password = foundUser?.Password;
+        }
+        else
+        {
+            // Console.WriteLine($"newpassword {u.Password} {BCrypt.Net.BCrypt.HashPassword(u.Password)}");
+            u.Password = BCrypt.Net.BCrypt.HashPassword(u.PasswordStr);
         }
 
         return u;

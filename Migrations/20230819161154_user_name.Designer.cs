@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace laundromatweb.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230819161154_user_name")]
+    partial class user_name
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
@@ -28,9 +30,6 @@ namespace laundromatweb.Migrations
                     b.Property<int?>("CreatedById")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("DefaultStoreId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("JwtSecret")
                         .HasColumnType("TEXT");
 
@@ -43,8 +42,6 @@ namespace laundromatweb.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
-
-                    b.HasIndex("DefaultStoreId");
 
                     b.ToTable("AdminConfigs");
                 });
@@ -306,9 +303,6 @@ namespace laundromatweb.Migrations
                     b.Property<string>("Password")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Role")
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -328,13 +322,7 @@ namespace laundromatweb.Migrations
                         .WithMany()
                         .HasForeignKey("CreatedById");
 
-                    b.HasOne("Store", "DefaultStore")
-                        .WithMany()
-                        .HasForeignKey("DefaultStoreId");
-
                     b.Navigation("CreatedBy");
-
-                    b.Navigation("DefaultStore");
                 });
 
             modelBuilder.Entity("Customer", b =>

@@ -20,10 +20,20 @@ import { createVuetify } from "vuetify";
 import { aliases, mdi } from "vuetify/iconsets/mdi";
 import DropOffDetailVue from "./components/DropOffDetail.vue";
 import ShopPriceSettingVue from "./components/ShopPriceSetting.vue";
+import { fetchUserData } from "./fetchers";
+import AdminConfigPageVue from "./components/AdminConfigPage.vue";
+
+export interface IAppContext {
+  apiKey?: string | null | undefined;
+  user?: any | null | undefined;
+}
 
 export const ctx = ref({
   apiKey: localStorage.getItem("apiKey") as string | null,
+  user: null,
 });
+
+fetchUserData(ctx);
 
 const vuetify = createVuetify({
   components,
@@ -45,6 +55,8 @@ const routes = [
   { path: "/inventory", component: InventoryVue },
   { path: "/dropoffs/:id", component: DropOffDetailVue },
   { path: "/shopsettings", component: ShopPriceSettingVue },
+  { path: "/adminconfig", component: AdminConfigPageVue },
+  
 ];
 
 const router = createRouter({

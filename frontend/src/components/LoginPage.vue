@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { ctx } from "../main";
+import { fetchUserData } from "../fetchers";
 // import { ctx } from "../main";
 // const localStoragex = localStorage;
 const username = ref("");
@@ -39,6 +40,9 @@ const login = async () => {
 
     ctx.value.apiKey = tok;
     localStorage.setItem("apiKey", tok);
+
+    fetchUserData(ctx);
+
   } catch (e) {
     try {
       // alert(e as any)

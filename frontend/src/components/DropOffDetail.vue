@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import VueSelect from "vue-select";
 import {
+  fetchAdminConfig,
   fetchCustomers,
   fetchInventorySummary,
   fetchItems,
@@ -32,18 +33,35 @@ const stores = ref([]) as Ref<any[]>;
 const searchByName = ref("");
 const searchByPhone = ref("");
 const searchByAddress = ref("");
+const adminConfig = ref(null) as Ref<any>;
 
 const saveCustomerLoading = ref(false);
+
+const checkStoreAndAdminConfig = () => {
+  if ((stores.value?.length ?? 0) > 0 && adminConfig) {
+    if (adminConfig.value?.defaultStoreId) {
+      record.value.storeId = adminConfig.value?.defaultStoreId;
+    } else {
+      record.value.storeId = stores.value?.[0]?.id;
+    }
+  }
+};
+
+const fetchAdminConfigData = async () => {
+  const d = await fetchAdminConfig({ apiKey: ctx.value.apiKey ?? "" });
+
+  if (d) {
+    adminConfig.value = d;
+    checkStoreAndAdminConfig();
+  }
+};
 
 const fetchStoresData = async () => {
   const d = await fetchStores({ apiKey: ctx.value.apiKey ?? "" });
 
   if (d) {
     stores.value = d;
-
-    if ((d?.length ?? 0) > 0 && !record?.value?.storeId) {
-      record.value.storeId = d?.[0]?.id;
-    }
+    checkStoreAndAdminConfig();
   }
 };
 const fetchItemsData = async () => {
@@ -253,6 +271,7 @@ const foundIdenticalCustomerData = computed(() => {
 
 fetchDropOffDetailData();
 fetchCustomersData();
+fetchAdminConfigData();
 </script>
 <template>
   <div class="container">

@@ -3,14 +3,14 @@ import { Ref } from "vue";
 import { ref } from "vue";
 import { fetchUsers } from "../fetchers";
 import { ctx } from "../main";
-
-const detailOpen = ref(false);
+import VueSelect from "vue-select";
+// const detailOpen = ref(false);
 
 const changePassword = ref(false);
 const saveLoading = ref(false);
 
 const users = ref([]) as Ref<any[]>;
-const selectedUser = ref({}) as Ref<any>;
+const selectedUser = ref(null) as Ref<any>;
 const newPassword = ref("");
 const confirmNewPassword = ref("");
 
@@ -38,7 +38,7 @@ const handleSave = async () => {
       throw await resp.text();
     }
 
-    selectedUser.value = {};
+    selectedUser.value = null;
     fetchUsersData();
   } catch (e) {
     return "";
@@ -50,7 +50,11 @@ const handleSave = async () => {
 fetchUsersData();
 </script>
 <template>
-  <dialog class="bg-light" style="z-index: 100; width: 75vw" :open="detailOpen">
+  <dialog
+    class="bg-light"
+    style="z-index: 100; width: 75vw"
+    :open="selectedUser"
+  >
     <div>
       <div><h4>Employee Detail</h4></div>
     </div>
@@ -81,6 +85,23 @@ fetchUsersData();
         @blur="(e) => {
           selectedUser.name = (e.target as HTMLInputElement).value
         }"
+      />
+    </div>
+
+    <div>
+      <small><strong>Role</strong></small>
+    </div>
+    <div>
+      <VueSelect
+        placeholder="Select role..."
+        :options="['Manager', 'Employee']"
+        :getOptionLabel="(r: any) => `${r}`"
+        @update:modelValue="(s: any) => {
+            selectedUser.role = s;
+          }"
+        :modelValue="
+          ['Manager', 'Employee'].find((r) => r === selectedUser?.role)
+        "
       />
     </div>
 
@@ -157,7 +178,7 @@ fetchUsersData();
         class="btn btn-sm btn-danger px-1 py-0"
         @click="
           () => {
-            detailOpen = false;
+            selectedUser = null;
           }
         "
       >
@@ -176,7 +197,7 @@ fetchUsersData();
           class="px-1 py-0 btn btn-sm btn-primary"
           @click="
             () => {
-              detailOpen = !detailOpen;
+              selectedUser = {};
             }
           "
         >
@@ -196,11 +217,31 @@ fetchUsersData();
       <tr>
         <th
           class="bg-dark text-light p-0 m-0"
-          v-for="h in ['#', 'Name', 'Username', 'Position']"
+          v-for="h in ['#', 'Name', 'Username', 'Role', 'Edit']"
           style="position: sticky; top: 0"
         >
           {{ h }}
         </th>
+      </tr>
+      <tr v-for="(u, i) in users">
+        <td class="border border-dark p-0 m-0">{{ i + 1 }}</td>
+        <td class="border border-dark p-0 m-0">{{ u?.name }}</td>
+        <td class="border border-dark p-0 m-0">{{ u?.username }}</td>
+        <td class="border border-dark p-0 m-0">{{ u?.role }}</td>
+        <td class="border border-dark p-0 m-0">
+          <div>
+            <button
+              @click="
+                () => {
+                  selectedUser = u;
+                }
+              "
+              class="btn btn-sm btn-primary px-1 py-0"
+            >
+              <VIcon icon="mdi-note-edit"></VIcon>
+            </button>
+          </div>
+        </td>
       </tr>
     </table>
   </div>

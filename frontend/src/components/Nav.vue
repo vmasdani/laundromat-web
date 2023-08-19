@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ctx } from "../main";
+
+import jwtDecode from "jwt-decode";
+
 const localStoragex = localStorage;
+
+const admin = (jwtDecode(ctx.value.apiKey ?? "") as any)?.admin;
 </script>
 <template>
   <nav class="navbar navbar-expand-lg bg-light">
@@ -31,7 +36,10 @@ const localStoragex = localStorage;
           <li class="nav-item">
             <a class="nav-link" href="#">Daily Operation</a>
           </li>
-          <li class="nav-item dropdown">
+          <li
+            v-if="admin || (ctx?.user as any)?.role === 'Manager'"
+            class="nav-item dropdown"
+          >
             <a
               class="nav-link dropdown-toggle"
               href="#"
@@ -52,7 +60,7 @@ const localStoragex = localStorage;
               </li>
             </ul>
           </li>
-          <li class="nav-item dropdown">
+          <li v-if="admin" class="nav-item dropdown">
             <a
               class="nav-link dropdown-toggle"
               href="#"
@@ -71,6 +79,12 @@ const localStoragex = localStorage;
                   >Shop Settings</a
                 >
               </li>
+              <li>
+                <a class="dropdown-item" href="/#/adminconfig"
+                  >Admin Config</a
+                >
+              </li>
+              
             </ul>
           </li>
         </ul>
