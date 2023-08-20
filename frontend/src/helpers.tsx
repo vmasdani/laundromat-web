@@ -1,8 +1,14 @@
-export const formatDateTimeShort = (s?: string | null | undefined) => {
+export const formatDateTimeShort = (
+  s?: string | null | undefined,
+  style?: {
+    dateStyle?: "short" | "full" | "long" | "medium" | undefined;
+    timeStyle?: "short" | "full" | "long" | "medium" | undefined;
+  }
+) => {
   try {
     return Intl.DateTimeFormat("en-US", {
-      dateStyle: "short",
-      timeStyle: "short",
+      dateStyle: style?.dateStyle ?? "short",
+      timeStyle: style?.timeStyle ?? "short",
     }).format(new Date(s ?? ""));
   } catch (e) {
     return "Invalid date";

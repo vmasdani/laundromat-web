@@ -192,6 +192,7 @@ app.MapGet("/api/testdt", (ApplicationDBContext ctx) =>
 app.MapGet("/api/laundryrecords", (ApplicationDBContext ctx) =>
     ctx.LaundryRecords
         ?.Include(r => r.Customer)
+        // ?.Include(r => r.Store)
         ?.Include(r => r.RecordItems)
         ?.Include(r => r.RecordExtraServices)
 

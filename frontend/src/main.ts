@@ -22,15 +22,18 @@ import DropOffDetailVue from "./components/DropOffDetail.vue";
 import ShopPriceSettingVue from "./components/ShopPriceSetting.vue";
 import { fetchUserData } from "./fetchers";
 import AdminConfigPageVue from "./components/AdminConfigPage.vue";
+import DropOffDetailPrintVue from "./components/DropOffDetailPrint.vue";
 
 export interface IAppContext {
   apiKey?: string | null | undefined;
   user?: any | null | undefined;
+  hideNavBar?: any | null | undefined;
 }
 
 export const ctx = ref({
   apiKey: localStorage.getItem("apiKey") as string | null,
   user: null,
+  hideNavBar: false,
 });
 
 fetchUserData(ctx);
@@ -56,7 +59,7 @@ const routes = [
   { path: "/dropoffs/:id", component: DropOffDetailVue },
   { path: "/shopsettings", component: ShopPriceSettingVue },
   { path: "/adminconfig", component: AdminConfigPageVue },
-  
+  { path: "/print-dropoffs/:id", component: DropOffDetailPrintVue },
 ];
 
 const router = createRouter({

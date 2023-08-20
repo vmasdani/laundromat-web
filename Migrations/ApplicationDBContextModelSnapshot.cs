@@ -241,7 +241,7 @@ namespace laundromatweb.Migrations
 
                     b.HasIndex("RecordId");
 
-                    b.ToTable("RecordExtraservices");
+                    b.ToTable("RecordExtraServices");
                 });
 
             modelBuilder.Entity("RecordItem", b =>
@@ -419,7 +419,7 @@ namespace laundromatweb.Migrations
                         .WithMany()
                         .HasForeignKey("CustomerId");
 
-                    b.HasOne("Customer", "Store")
+                    b.HasOne("Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId");
 
@@ -437,7 +437,7 @@ namespace laundromatweb.Migrations
                         .HasForeignKey("CreatedById");
 
                     b.HasOne("LaundryRecord", "Record")
-                        .WithMany()
+                        .WithMany("RecordExtraServices")
                         .HasForeignKey("RecordId");
 
                     b.Navigation("CreatedBy");
@@ -492,6 +492,8 @@ namespace laundromatweb.Migrations
 
             modelBuilder.Entity("LaundryRecord", b =>
                 {
+                    b.Navigation("RecordExtraServices");
+
                     b.Navigation("RecordItems");
                 });
 #pragma warning restore 612, 618

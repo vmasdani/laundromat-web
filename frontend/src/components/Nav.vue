@@ -8,7 +8,7 @@ const localStoragex = localStorage;
 const admin = (jwtDecode(ctx.value.apiKey ?? "") as any)?.admin;
 </script>
 <template>
-  <nav class="navbar navbar-expand-lg bg-light">
+  <nav v-if="!ctx.hideNavBar" class="navbar navbar-expand-lg bg-light">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">OpenLaundromat</a>
       <button
