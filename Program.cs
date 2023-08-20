@@ -193,12 +193,15 @@ app.MapGet("/api/laundryrecords", (ApplicationDBContext ctx) =>
     ctx.LaundryRecords
         ?.Include(r => r.Customer)
         ?.Include(r => r.RecordItems)
+        ?.Include(r => r.RecordExtraServices)
+
 );
 app.MapGet("/api/laundryrecords/{id}", (ApplicationDBContext ctx, int id) =>
     ctx.LaundryRecords
         ?.Where(r => r.Id == id)
         ?.Include(r => r.Customer)
         ?.Include(r => r.RecordItems)
+        ?.Include(r => r.RecordExtraServices)
         ?.FirstOrDefault()
 );
 

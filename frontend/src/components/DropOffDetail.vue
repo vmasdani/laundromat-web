@@ -20,6 +20,8 @@ const windowx = window;
 const customers = ref([]) as Ref<any[]>;
 const record = ref({
   recordItems: [],
+  recordExtraServices: [],
+
   status: "PROCESSING",
   paid: false,
 }) as Ref<any>;
@@ -156,8 +158,14 @@ const calculatedSnapshotPrice = computed(() => {
     },
     0.0
   );
+  const recordExtraServicesPrice = record.value?.recordExtraServices?.reduce(
+    (acc: any, s: any) => {
+      return acc + s?.price;
+    },
+    0.0
+  );
 
-  return 10 + finalPricePerweight + recordItemPrice;
+  return 10 + finalPricePerweight + recordItemPrice + recordExtraServicesPrice;
 });
 
 const handleSave = async () => {
@@ -682,6 +690,63 @@ fetchAdminConfigData();
             </tr>
           </table>
         </div>
+      </div>
+      <div class="d-flex">
+        <small><strong>Extra Services</strong></small>
+        <div>
+          <button
+            class="btn btn-sm btn-primary px-1 py-0"
+            @click="
+              () => {
+                record?.recordExtraServices?.push({});
+              }
+            "
+          >
+            <VIcon icon="mdi-plus" />
+          </button>
+        </div>
+      </div>
+      <!-- {{ JSON.stringify(record.recordExtraServices) }} -->
+      <div
+        class="overflow-auto border border-dark"
+        style="height: 15vh; resize: vertical"
+      >
+        <table class="table table-sm" style="border-collapse: separate">
+          <th
+            class=""
+            v-for="h in ['#', 'Service', 'Fee']"
+            :class="`bg-dark text-light m-0 p-0`"
+            style="position: sticky; top: 0"
+          >
+            {{ h }}
+          </th>
+          <tr v-for="(s, i) in record?.recordExtraServices ?? []">
+            <td class="border border-dark p-0 m-0">{{ i + 1 }}</td>
+            <td class="border border-dark p-0 m-0">
+              <input
+                class="form-control form-control-sm"
+                :value="s?.name"
+                @input="e => {
+                 
+                  s.name=(e.target as HTMLInputElement).value
+                }"
+              />
+            </td>
+            <td class="border border-dark p-0 m-0">
+              <input
+                class="form-control form-control-sm"
+                :value="s?.price"
+                @input="e => {
+                 const v = isNaN(parseFloat((e.target as HTMLInputElement).value))
+                    ? 0
+                    : parseFloat((e.target as HTMLInputElement).value)
+
+                  s.price=v
+                }"
+              />
+            </td>
+          </tr>
+        </table>
       </div>
       <div class="d-flex">
         <div>
