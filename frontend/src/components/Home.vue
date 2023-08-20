@@ -82,6 +82,8 @@ fetchAppStatsData();
           'Updated at',
           'Created by',
           'Addit. Items',
+          'Extra svcs.',
+          
           'Action',
         ]"
         :class="`bg-dark text-light m-0 p-0`"
@@ -122,6 +124,8 @@ fetchAppStatsData();
         <td class="border border-dark p-0 m-0"></td>
 
         <td class="border border-dark p-0 m-0">{{ l?.recordItems?.length }}</td>
+        <td class="border border-dark p-0 m-0">{{ l?.recordExtraServices?.length }}</td>
+        
         <td class="border border-dark p-0 m-0">
           <div>
             <a :href="`/#/dropoffs/${l?.id}`">
