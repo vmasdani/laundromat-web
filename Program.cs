@@ -186,17 +186,24 @@ app.MapPost("/api/inventory-save-bulk", (
     ctx.SaveChanges();
 });
 
-app.MapGet("/api/testdt", (ApplicationDBContext ctx) =>
-    DateTime.Now.ToUniversalTime().ToString("o")
-);
-app.MapGet("/api/laundryrecords", (ApplicationDBContext ctx) =>
-    ctx.LaundryRecords
+// app.MapGet("/api/testdt", (ApplicationDBContext ctx) =>
+//     DateTime.Now.ToUniversalTime().ToString("o")
+// );
+app.MapGet("/api/laundryrecords", (ApplicationDBContext ctx, string? from, string? to) =>
+{
+    var fromDate = from != null ? DateTime.Parse(from) : DateTime.Now;
+    var toDate = to != null ? DateTime.Parse(to) : DateTime.Now;
+
+
+    return ctx.LaundryRecords
+        ?.Where(r => from != null ? r.CreatedAt >= fromDate : true)
+        ?.Where(r => to != null ? r.CreatedAt <= toDate : true)
         ?.Include(r => r.Customer)
         // ?.Include(r => r.Store)
         ?.Include(r => r.RecordItems)
-        ?.Include(r => r.RecordExtraServices)
+        ?.Include(r => r.RecordExtraServices);
 
-);
+});
 app.MapGet("/api/laundryrecords/{id}", (ApplicationDBContext ctx, int id) =>
     ctx.LaundryRecords
         ?.Where(r => r.Id == id)
@@ -257,6 +264,10 @@ app.MapPost("/api/items-save-bulk", (
 app.MapGet("/api/customers", (ApplicationDBContext ctx) =>
     ctx.Customers
 );
+// app.MapGet("/api/testdt", (ApplicationDBContext ctx) =>
+//     DateTime.Parse("2023-09-02T12:21:29.3371997ZZ", null, System.Globalization.DateTimeStyles.RoundtripKind)
+// );
+
 app.MapPost("/api/customers-save-bulk", (
     ApplicationDBContext ctx,
     List<Customer> custs
@@ -264,6 +275,8 @@ app.MapPost("/api/customers-save-bulk", (
 {
     ctx.UpdateRange(custs);
     ctx.SaveChanges();
+
+    return custs;
 });
 
 app.MapGet("/api/adminconfig", (ApplicationDBContext ctx) => ctx.AdminConfigs?.FirstOrDefault());

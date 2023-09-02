@@ -7,6 +7,7 @@ import {
   fetchItems,
   fetchLaundryRecord,
   fetchStores,
+  saveCustomers,
 } from "../fetchers";
 import { Ref } from "vue";
 import { ctx } from "../main";
@@ -37,7 +38,7 @@ const searchByPhone = ref("");
 const searchByAddress = ref("");
 const adminConfig = ref(null) as Ref<any>;
 
-const saveCustomerLoading = ref(false);
+// const saveCustomerLoading = ref(false);
 
 const checkStoreAndAdminConfig = () => {
   if ((stores.value?.length ?? 0) > 0 && adminConfig) {
@@ -104,38 +105,38 @@ const fetchDropOffDetailData = async () => {
   }
 };
 
-const handleSaveNewCustomer = async () => {
-  try {
-    saveCustomerLoading.value = true;
-    const resp = await fetch(
-      `${window.location.origin}/api/customers-save-bulk`,
-      {
-        method: "post",
-        headers: {
-          "content-type": "application/json",
-          authorization: ctx.value.apiKey ?? "",
-        },
-        body: JSON.stringify([
-          {
-            name: searchByName.value,
-            phone: searchByPhone.value,
-          },
-        ]),
-      }
-    );
+// const handleSaveNewCustomer = async () => {
+//   try {
+//     saveCustomerLoading.value = true;
+//     const resp = await fetch(
+//       `${window.location.origin}/api/customers-save-bulk`,
+//       {
+//         method: "post",
+//         headers: {
+//           "content-type": "application/json",
+//           authorization: ctx.value.apiKey ?? "",
+//         },
+//         body: JSON.stringify([
+//           {
+//             name: searchByName.value,
+//             phone: searchByPhone.value,
+//           },
+//         ]),
+//       }
+//     );
 
-    if (resp.status !== 200) {
-      throw await resp.text();
-    }
+//     if (resp.status !== 200) {
+//       throw await resp.text();
+//     }
 
-    window.alert("Customer successfully added.");
-    fetchCustomersData();
-  } catch (e) {
-    return "";
-  } finally {
-    saveCustomerLoading.value = false;
-  }
-};
+//     window.alert("Customer successfully added.");
+//     fetchCustomersData();
+//   } catch (e) {
+//     return "";
+//   } finally {
+//     saveCustomerLoading.value = false;
+//   }
+// };
 
 fetchInventorySummaryData();
 fetchItemsData();
@@ -167,74 +168,6 @@ const calculatedSnapshotPrice = computed(() => {
 
   return 10 + finalPricePerweight + recordItemPrice + recordExtraServicesPrice;
 });
-
-const handleSave = async () => {
-  console.log("save");
-
-  // const foundStore = stores.value?.find(
-  //   (s) => `${s?.id}` === `${record.value?.storeId}`
-  // );
-
-  // if (
-  //   (foundStore?.minimumDropOffWeight ?? 0) > 0 &&
-  //   (record.value?.weight ?? 0) < (foundStore?.minimumDropOffWeight ?? 0)
-  // ) {
-  //   alert(`Minimum weight must be ${foundStore?.minimumDropOffWeight ?? 0}.`);
-
-  //   return;
-  // }
-
-  const priceSnapshot = calculatedSnapshotPrice.value;
-
-  console.log("snapshotprice =", priceSnapshot);
-
-  let finalSnapshot = priceSnapshot;
-
-  // if (priceSnapshot < 10 && !record.value?.isDiscount) {
-  //   if (
-  //     window.confirm(
-  //       `Total price is less than $10, round up to $10? (If you click cancel, it'll be $${priceSnapshot})`
-  //     )
-  //   ) {
-  //     finalSnapshot = 10;
-  //   }
-  // }
-
-  if (record.value?.isDiscount) {
-    finalSnapshot = record.value.discountPrice;
-  }
-
-  try {
-    saveLoading.value = true;
-    const resp = await fetch(
-      `${window.location.origin}/api/laundryrecords-save-bulk`,
-      {
-        method: "post",
-        headers: {
-          "content-type": "application/json",
-          authorization: ctx.value.apiKey ?? "",
-        },
-        body: JSON.stringify([
-          {
-            ...record.value,
-            priceSnapshot: finalSnapshot,
-          },
-        ]),
-      }
-    );
-
-    if (resp.status !== 200) {
-      throw await resp.text();
-    }
-
-    router.push("/");
-  } catch (e) {
-    console.error(e);
-    return "";
-  } finally {
-    saveLoading.value = false;
-  }
-};
 
 const searchedCustomers = computed(() => {
   console.log(searchByName.value, searchByPhone.value);
@@ -276,6 +209,76 @@ const foundIdenticalCustomerData = computed(() => {
         searchByAddress.value.toLowerCase()
   );
 });
+
+const checkNewCustomerAddCondition = computed(() => {
+  return (
+    !foundIdenticalCustomerData.value &&
+    searchByName.value !== "" &&
+    searchByPhone.value !== "" &&
+    searchByAddress.value !== ""
+  );
+});
+
+const handleSave = async () => {
+  console.log("save");
+
+  let autoSavedCustomers = null;
+  if (checkNewCustomerAddCondition.value) {
+    autoSavedCustomers = await saveCustomers({
+      apiKey: ctx.value.apiKey ?? "",
+      cust: [
+        {
+          name: searchByName?.value ?? "",
+          phone: searchByPhone?.value ?? "",
+          address: searchByAddress?.value ?? "",
+        },
+      ],
+    });
+  }
+
+  const priceSnapshot = calculatedSnapshotPrice.value;
+
+  console.log("snapshotprice =", priceSnapshot);
+
+  let finalSnapshot = priceSnapshot;
+
+  if (record.value?.isDiscount) {
+    finalSnapshot = record.value.discountPrice;
+  }
+
+  try {
+    saveLoading.value = true;
+    const resp = await fetch(
+      `${window.location.origin}/api/laundryrecords-save-bulk`,
+      {
+        method: "post",
+        headers: {
+          "content-type": "application/json",
+          authorization: ctx.value.apiKey ?? "",
+        },
+        body: JSON.stringify([
+          {
+            ...record.value,
+            priceSnapshot: finalSnapshot,
+            customerId: autoSavedCustomers ? autoSavedCustomers?.[0]?.id : null,
+            customer: autoSavedCustomers?.[0] ?? null,
+          },
+        ]),
+      }
+    );
+
+    if (resp.status !== 200) {
+      throw await resp.text();
+    }
+
+    router.push("/");
+  } catch (e) {
+    console.error(e);
+    return "";
+  } finally {
+    saveLoading.value = false;
+  }
+};
 
 fetchDropOffDetailData();
 fetchCustomersData();
@@ -404,16 +407,9 @@ fetchAdminConfigData();
           </tr>
         </table>
       </div>
-      <div
-        v-if="
-          !foundIdenticalCustomerData &&
-          searchByName !== '' &&
-          searchByPhone !== '' &&
-          searchByAddress !== ''
-        "
-      >
+      <div v-if="checkNewCustomerAddCondition">
         <div>
-          Click
+          <!-- Click
           <span
             v-if="!saveCustomerLoading"
             @click="
@@ -425,11 +421,13 @@ fetchAdminConfigData();
             class="text-primary"
             >here</span
           >
-          <span v-else>here</span>
-          to add customer with name:
+          <span v-else>here</span> -->
+          a customer with name:
           <span class="text-primary">{{ searchByName }}</span
           >, phone: <span class="text-primary">{{ searchByPhone }}</span
-          >, address: <span class="text-primary">{{ searchByAddress }}</span>
+          >, address:
+          <span class="text-primary">{{ searchByAddress }}</span> will be
+          automatically added and assigned if you save.
         </div>
       </div>
       <!-- <div class="d-flex">

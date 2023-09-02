@@ -15,6 +15,15 @@ export const formatDateTimeShort = (
   }
 };
 
+export const makeDateString = (d: Date) =>
+  `${d.getFullYear()}-${
+    d.getMonth() + 1 < 10 ? `0${d.getMonth() + 1}` : d.getMonth() + 1
+  }-${
+    new Date().getDate() < 10
+      ? `0${new Date().getDate()}`
+      : `${new Date().getDate()}`
+  }`;
+
 export type LaundryRecordStatus =
   | "ONGOING"
   | "DONE"

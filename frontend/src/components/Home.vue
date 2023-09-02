@@ -3,11 +3,17 @@ import { ref } from "vue";
 import { fetchAppStats, fetchLaundryRecords, fetchStores } from "../fetchers";
 import { ctx } from "../main";
 import { Ref } from "vue";
-import { formatDateTimeShort } from "../helpers";
+import { formatDateTimeShort, makeDateString } from "../helpers";
 
 const appStats = ref(null) as Ref<any | null>;
 const laundryRecords = ref([]) as Ref<any[]>;
 const stores = ref([]) as Ref<any[]>;
+const from = ref(
+  `${new Date(`${makeDateString(new Date())}T00:00:00`).toISOString()}`
+);
+const to = ref(
+  `${new Date(`${makeDateString(new Date())}T00:00:00`).toISOString()}`
+);
 
 const fetchAppStatsData = async () => {
   const d = await fetchAppStats({ apiKey: ctx.value.apiKey ?? "" });
@@ -25,7 +31,11 @@ const fetchStoresData = async () => {
 };
 
 const fetchLaundryRecordsData = async () => {
-  const d = await fetchLaundryRecords({ apiKey: ctx.value.apiKey ?? "" });
+  const d = await fetchLaundryRecords({
+    apiKey: ctx.value.apiKey ?? "",
+    from: from.value,
+    to: to.value,
+  });
 
   if (d) {
     laundryRecords.value = d;
@@ -71,6 +81,44 @@ fetchStoresData();
 
   <div><hr class="border border-dark" /></div>
 
+  <div class="d-flex">
+    <div>
+      <div>
+        <small><strong>From</strong></small>
+      </div>
+      <div>
+        <input
+          @blur="
+            (e) => {
+              console.log(e);
+              from = `${new Date(`${new Date(`${(e.target as HTMLInputElement).value}T00:00:00`)}`).toISOString()}`
+              fetchLaundryRecordsData()
+            }
+          "
+          class="form-control form-control-sm"
+          type="date"
+        />
+      </div>
+    </div>
+    <div>
+      <div>
+        <small><strong>To</strong></small>
+      </div>
+      <div>
+        <input
+          @blur="
+            (e) => {
+              console.log(e);
+              to = `${new Date(`${new Date(`${(e.target as HTMLInputElement).value}T00:00:00`)}`).toISOString()}`
+              fetchLaundryRecordsData()
+            }
+          "
+          class="form-control form-control-sm"
+          type="date"
+        />
+      </div>
+    </div>
+  </div>
   <div
     class="overflow-auto border border-dark"
     style="height: 65vh; resize: vertical"

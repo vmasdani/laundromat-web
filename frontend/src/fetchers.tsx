@@ -157,11 +157,44 @@ export const fetchAppStats = async (params: { apiKey?: any }) => {
   }
 };
 
-export const fetchLaundryRecords = async (params: { apiKey?: any }) => {
+export const fetchLaundryRecords = async (params: {
+  apiKey?: any;
+  from?: any;
+  to?: any;
+}) => {
   try {
-    const resp = await fetch(`${window.location.origin}/api/laundryrecords`, {
-      headers: { authorization: params.apiKey ?? "" },
-    });
+    const resp = await fetch(
+      `${window.location.origin}/api/laundryrecords?from=${
+        params.from ?? ""
+      }&to=${params.to ?? ""}`,
+      {
+        headers: { authorization: params.apiKey ?? "" },
+      }
+    );
+    if (resp.status !== 200) {
+      throw await resp.text();
+    }
+
+    return await resp.json();
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+};
+
+export const saveCustomers = async (params: { apiKey?: any; cust?: any }) => {
+  try {
+    const resp = await fetch(
+      `${window.location.origin}/api/customers-save-bulk`,
+      {
+        method: "post",
+        headers: {
+          authorization: params.apiKey ?? "",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(params.cust),
+      }
+    );
     if (resp.status !== 200) {
       throw await resp.text();
     }
