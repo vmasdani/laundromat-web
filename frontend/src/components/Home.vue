@@ -3,7 +3,13 @@ import { ref } from "vue";
 import { fetchAppStats, fetchLaundryRecords, fetchStores } from "../fetchers";
 import { ctx } from "../main";
 import { Ref } from "vue";
-import { formatDateTimeShort, makeDateString } from "../helpers";
+import {
+  LaundryRecordStatus,
+  formatDateTimeShort,
+  laundryRecordStatuses,
+  makeDateString,
+} from "../helpers";
+import { computed } from "vue";
 
 const appStats = ref(null) as Ref<any | null>;
 const laundryRecords = ref([]) as Ref<any[]>;
@@ -12,7 +18,7 @@ const from = ref(
   `${new Date(`${makeDateString(new Date())}T00:00:00`).toISOString()}`
 );
 const to = ref(
-  `${new Date(`${makeDateString(new Date())}T00:00:00`).toISOString()}`
+  `${new Date(`${makeDateString(new Date())}T23:59:59`).toISOString()}`
 );
 
 const fetchAppStatsData = async () => {
@@ -41,6 +47,16 @@ const fetchLaundryRecordsData = async () => {
     laundryRecords.value = d;
   }
 };
+
+const selectedLaundryRecordStatuses = ref(["PROCESSING"]) as Ref<
+  LaundryRecordStatus[]
+>;
+
+const filteredrecords = computed(() => {
+  return laundryRecords.value.filter((r) =>
+    selectedLaundryRecordStatuses.value.find((s) => `${s}` === `${r?.status}`)
+  );
+});
 
 fetchLaundryRecordsData();
 fetchAppStatsData();
@@ -118,6 +134,29 @@ fetchStoresData();
         />
       </div>
     </div>
+
+    <div v-for="(s, _) in laundryRecordStatuses">
+      <button
+        @click="
+          () => {
+            if (selectedLaundryRecordStatuses.find((sx) => sx === s)) {
+              selectedLaundryRecordStatuses =
+                selectedLaundryRecordStatuses.filter((sx) => sx !== s);
+              return;
+            }
+
+            selectedLaundryRecordStatuses.push(s);
+          }
+        "
+        :class="`btn btn-sm ${
+          selectedLaundryRecordStatuses.find((sx) => `${sx}` === `${s}`)
+            ? `btn-primary`
+            : `btn-outline-primary`
+        }`"
+      >
+        {{ s }}
+      </button>
+    </div>
   </div>
   <div
     class="overflow-auto border border-dark"
@@ -129,7 +168,6 @@ fetchStoresData();
         v-for="h in [
           '#',
           'Store',
-
           'Customer',
           'Cust. Phone',
           'Weight',
@@ -150,7 +188,7 @@ fetchStoresData();
       >
         {{ h }}
       </th>
-      <tr v-for="(l, i) in laundryRecords">
+      <tr v-for="(l, i) in filteredrecords">
         <td class="border border-dark p-0 m-0">{{ i + 1 }}</td>
         <td class="border border-dark p-0 m-0">
           {{ stores.find((s) => `${s?.id}` === `${l?.storeId}`)?.name }}

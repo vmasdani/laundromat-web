@@ -10,6 +10,6 @@ public class JsonDateTimeConverter : JsonConverter<DateTime>
 
     public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue($"{value.ToString("u")}");
+        writer.WriteStringValue($"{value.ToUniversalTime().ToString("u")}");
     }
 }

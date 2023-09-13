@@ -166,7 +166,18 @@ const calculatedSnapshotPrice = computed(() => {
     0.0
   );
 
-  return 10 + finalPricePerweight + recordItemPrice + recordExtraServicesPrice;
+  const finalPrice =
+    finalPricePerweight + recordItemPrice + recordExtraServicesPrice;
+
+  if (record.value.isDiscount) {
+    return record.value.discountPrice ?? 0;
+  }
+
+  if (finalPrice < 10) {
+    return 10;
+  } else {
+    return finalPrice;
+  }
 });
 
 const searchedCustomers = computed(() => {
@@ -220,10 +231,17 @@ const checkNewCustomerAddCondition = computed(() => {
 });
 
 const handleSave = async () => {
+  if (!record.value.weight) {
+    alert("Weight must be filled.");
+    return;
+  }
+
   console.log("save");
 
   let autoSavedCustomers = null;
+
   if (checkNewCustomerAddCondition.value) {
+    
     autoSavedCustomers = await saveCustomers({
       apiKey: ctx.value.apiKey ?? "",
       cust: [
@@ -260,8 +278,10 @@ const handleSave = async () => {
           {
             ...record.value,
             priceSnapshot: finalSnapshot,
-            customerId: autoSavedCustomers ? autoSavedCustomers?.[0]?.id : null,
-            customer: autoSavedCustomers?.[0] ?? null,
+            customerId: autoSavedCustomers
+              ? (autoSavedCustomers?.[0] as any)?.id
+              : record.value.customerId,
+            customer: autoSavedCustomers?.[0] ?? record?.value.customer,
           },
         ]),
       }
